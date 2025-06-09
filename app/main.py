@@ -1,13 +1,14 @@
-import os
 import logging
+import pathlib
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
-from fastapi.responses import HTMLResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from fastapi.templating import Jinja2Templates
+from dotenv import load_dotenv
 
 from .database import create_tables, close_db
 from .admin import router as admin_router
@@ -19,7 +20,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load environment variables
-from dotenv import load_dotenv
 load_dotenv()
 
 def startup_event():
@@ -70,11 +70,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 app.add_middleware(SecurityHeadersMiddleware)
 
 # Get the base directory (where this file is located)
-import pathlib
 BASE_DIR = pathlib.Path(__file__).parent
 
-# Mount static files with absolute path
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+# Mount static files with absolute path and check directory
+static_directory = str(BASE_DIR / "static")
+logger.info(f"Mounting static files from: {static_directory}")
+app.mount("/static", StaticFiles(directory=static_directory, check_dir=True), name="static")
 
 # Setup templates with absolute path
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -109,7 +110,6 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Redirect root to admin"""
-    from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/admin", status_code=302)
 
 # Health check
@@ -122,10 +122,15 @@ async def health_check():
 @app.get("/debug/static")
 async def debug_static():
     """Debug static file paths"""
-    import os
     static_dir = BASE_DIR / "static"
     css_file = static_dir / "css" / "admin.css"
     js_file = static_dir / "js" / "admin.js"
+    
+    # Read a sample of the CSS file to verify content
+    css_content = ""
+    if css_file.exists():
+        with open(css_file, 'r') as f:
+            css_content = f.read()[:200] + "..." if len(f.read()) > 200 else f.read()
     
     return {
         "base_dir": str(BASE_DIR),
@@ -134,8 +139,22 @@ async def debug_static():
         "css_file_exists": css_file.exists(),
         "js_file_exists": js_file.exists(),
         "css_file_path": str(css_file),
+        "css_file_size": css_file.stat().st_size if css_file.exists() else 0,
+        "css_sample": css_content[:200] + "..." if len(css_content) > 200 else css_content,
         "static_files": [f.name for f in static_dir.rglob("*") if f.is_file()] if static_dir.exists() else []
     }
+
+# Direct CSS endpoint for testing
+@app.get("/test-css")
+async def test_css():
+    """Serve CSS directly for testing"""
+    css_file = BASE_DIR / "static" / "css" / "admin.css"
+    if css_file.exists():
+        with open(css_file, 'r') as f:
+            css_content = f.read()
+        return Response(content=css_content, media_type="text/css")
+    else:
+        raise HTTPException(status_code=404, detail="CSS file not found")
 
 if __name__ == "__main__":
     import uvicorn
