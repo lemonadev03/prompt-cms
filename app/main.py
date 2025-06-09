@@ -69,11 +69,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# Get the base directory (where this file is located)
+import pathlib
+BASE_DIR = pathlib.Path(__file__).parent
 
-# Setup templates
-templates = Jinja2Templates(directory="app/templates")
+# Mount static files with absolute path
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+
+# Setup templates with absolute path
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # Include routers
 app.include_router(admin_router)
@@ -113,6 +117,25 @@ async def root():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+# Debug endpoint for checking static files
+@app.get("/debug/static")
+async def debug_static():
+    """Debug static file paths"""
+    import os
+    static_dir = BASE_DIR / "static"
+    css_file = static_dir / "css" / "admin.css"
+    js_file = static_dir / "js" / "admin.js"
+    
+    return {
+        "base_dir": str(BASE_DIR),
+        "static_dir": str(static_dir),
+        "static_dir_exists": static_dir.exists(),
+        "css_file_exists": css_file.exists(),
+        "js_file_exists": js_file.exists(),
+        "css_file_path": str(css_file),
+        "static_files": [f.name for f in static_dir.rglob("*") if f.is_file()] if static_dir.exists() else []
+    }
 
 if __name__ == "__main__":
     import uvicorn
