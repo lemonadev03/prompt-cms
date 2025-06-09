@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Prompt CMS{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h2>Prompts Dashboard</h2>
+        <a href="/admin/prompt/new" class="btn btn-primary">Create New Prompt</a>
+    </div>
+
+    {% if prompts %}
+    <div class="table-container">
+        <table class="prompts-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Description</th>
+                    <th>Created</th>
+                    <th>Updated</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prompt in prompts %}
+                <tr>
+                    <td class="id-cell">
+                        <code>{{ prompt.id|string|truncate(8, False, '') }}</code>
+                    </td>
+                    <td class="description-cell">
+                        <span title="{{ prompt.description or 'No description' }}">
+                            {{ prompt.description or 'No description' }}
+                        </span>
+                    </td>
+                    <td class="date-cell">
+                        {{ prompt.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td class="date-cell">
+                        {{ prompt.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td class="actions-cell">
+                        <div class="action-buttons">
+                            <a href="/prompt/{{ prompt.id }}" 
+                               class="btn btn-small btn-outline" 
+                               target="_blank"
+                               title="View Raw">
+                                View
+                            </a>
+                            <a href="/admin/prompt/{{ prompt.id }}/edit" 
+                               class="btn btn-small btn-secondary">
+                                Edit
+                            </a>
+                            <form action="/admin/prompt/{{ prompt.id }}/delete" 
+                                  method="post" 
+                                  class="delete-form"
+                                  onsubmit="return confirmDelete('{{ prompt.description or 'this prompt' }}')">
+                                <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No prompts yet</h3>
+        <p>Create your first prompt to get started.</p>
+        <a href="/admin/prompt/new" class="btn btn-primary">Create First Prompt</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function confirmDelete(description) {
+    return confirm(`Are you sure you want to delete "${description}"? This action cannot be undone.`);
+}
+</script>
+{% endblock %} 

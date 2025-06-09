@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Prompt CMS - Content Management System for Markdown Prompts">
+    <title>{% block title %}Prompt CMS{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/admin.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        {% block header %}
+        <header class="header">
+            <h1><a href="/admin">Prompt CMS</a></h1>
+            {% if request.session.get('authenticated') %}
+            <nav class="nav">
+                <a href="/admin" class="nav-link">Dashboard</a>
+                <a href="/admin/prompt/new" class="nav-link">New Prompt</a>
+                <form action="/admin/logout" method="post" class="logout-form">
+                    <button type="submit" class="btn btn-outline">Logout</button>
+                </form>
+            </nav>
+            {% endif %}
+        </header>
+        {% endblock %}
+
+        <main class="main">
+            {% block content %}{% endblock %}
+        </main>
+
+        {% block footer %}
+        <footer class="footer">
+            <p>&copy; 2024 Prompt CMS. Built with FastAPI.</p>
+        </footer>
+        {% endblock %}
+    </div>
+
+    {% block scripts %}
+    <script src="{{ url_for('static', path='/js/admin.js') }}"></script>
+    {% endblock %}
+</body>
+</html> 

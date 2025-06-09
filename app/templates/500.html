@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - Prompt CMS{% endblock %}
+
+{% block header %}
+<header class="header">
+    <h1><a href="/admin">Prompt CMS</a></h1>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-content">
+        <h1 class="error-code">500</h1>
+        <h2 class="error-title">Internal Server Error</h2>
+        <p class="error-message">
+            Something went wrong on our end. Please try again later.
+        </p>
+        <div class="error-actions">
+            <a href="/admin" class="btn btn-primary">Go to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

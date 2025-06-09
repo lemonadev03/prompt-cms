@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Prompt CMS{% endblock %}
+
+{% block header %}
+<header class="header">
+    <h1><a href="/admin">Prompt CMS</a></h1>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-content">
+        <h1 class="error-code">404</h1>
+        <h2 class="error-title">Page Not Found</h2>
+        <p class="error-message">
+            The page or prompt you're looking for doesn't exist.
+        </p>
+        <div class="error-actions">
+            <a href="/admin" class="btn btn-primary">Go to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %} 
